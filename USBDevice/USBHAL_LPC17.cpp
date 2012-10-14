@@ -371,7 +371,6 @@ USBHAL::USBHAL(void) {
     // Attach IRQ
     instance = this;
     NVIC_SetVector(USB_IRQn, (uint32_t)&_usbisr);
-    NVIC_EnableIRQ(USB_IRQn);
 
     // Enable interrupts for device events and EP0
     LPC_USB->USBDevIntEn = EP_SLOW | DEV_STAT | FRAME;
@@ -388,11 +387,13 @@ USBHAL::~USBHAL(void) {
 }
 
 void USBHAL::connect(void) {
+    NVIC_EnableIRQ(USB_IRQn);
     // Connect USB device
     SIEconnect();
 }
 
 void USBHAL::disconnect(void) {
+    NVIC_DisableIRQ(USB_IRQn);
     // Disconnect USB device
     SIEdisconnect();
 }

@@ -176,7 +176,6 @@ USBHAL::USBHAL(void) {
 
     //attach IRQ handler and enable interrupts
     NVIC_SetVector(USB_IRQn, (uint32_t)&_usbisr);
-    NVIC_EnableIRQ(USB_IRQn);
 }
 
 USBHAL::~USBHAL(void) {
@@ -188,11 +187,13 @@ USBHAL::~USBHAL(void) {
 }
 
 void USBHAL::connect(void) {
+    NVIC_EnableIRQ(USB_IRQn);
     devCmdStat |= DCON;
     LPC_USB->DEVCMDSTAT = devCmdStat;
 }
 
 void USBHAL::disconnect(void) {
+    NVIC_DisableIRQ(USB_IRQn);
     devCmdStat &= ~DCON;
     LPC_USB->DEVCMDSTAT = devCmdStat;
 }
