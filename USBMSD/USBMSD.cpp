@@ -64,6 +64,9 @@ enum Status {
 
 
 USBMSD::USBMSD(uint16_t vendor_id, uint16_t product_id, uint16_t product_release): USBDevice(vendor_id, product_id, product_release) {
+    stage = READ_CBW;
+    memset((void *)&cbw, 0, sizeof(CBW));
+    memset((void *)&csw, 0, sizeof(CSW));
 }
 
 
