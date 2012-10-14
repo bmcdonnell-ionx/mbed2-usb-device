@@ -452,6 +452,10 @@ void USBMSD::CBWDecode(uint8_t * buf, uint16_t size) {
                             }
                         }
                         break;
+                    case MEDIA_REMOVAL:
+                        csw.Status = CSW_PASSED;
+                        sendCSW();
+                        break;
                     default:
                         fail();
                         break;
