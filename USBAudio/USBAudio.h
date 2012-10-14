@@ -30,6 +30,7 @@
 /**
 * USBAudio example
 *
+* @code
 * #include "mbed.h"
 * #include "USBAudio.h"
 *
