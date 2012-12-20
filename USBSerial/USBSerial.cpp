@@ -20,6 +20,8 @@
 #include "USBSerial.h"
 
 int USBSerial::_putc(int c) {
+    if (!terminal_connected)
+        return 0;
     send((uint8_t *)&c, 1);
     return 1;
 }

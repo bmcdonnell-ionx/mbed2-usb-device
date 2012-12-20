@@ -30,6 +30,7 @@ static uint8_t cdc_line_coding[7]= {0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08};
 #define MAX_CDC_REPORT_SIZE MAX_PACKET_SIZE_EPBULK
 
 USBCDC::USBCDC(uint16_t vendor_id, uint16_t product_id, uint16_t product_release): USBDevice(vendor_id, product_id, product_release) {
+    terminal_connected = false;
     USBDevice::connect();
 }
 
@@ -52,8 +53,11 @@ bool USBCDC::USBCallback_request(void) {
             case CDC_SET_LINE_CODING:
                 transfer->remaining = 7;
                 success = true;
+                terminal_connected = true;
                 break;
             case CDC_SET_CONTROL_LINE_STATE:
+                if (terminal_connected)
+                    terminal_connected = false;
                 success = true;
                 break;
             default:

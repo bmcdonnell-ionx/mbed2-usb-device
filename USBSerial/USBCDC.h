@@ -99,9 +99,11 @@ protected:
     * @returns true if successful
     */
     bool readEP_NB(uint8_t * buffer, uint32_t * size);
-
+    
+protected:
     virtual bool USBCallback_request();
     virtual bool USBCallback_setConfiguration(uint8_t configuration);
+    volatile bool terminal_connected;
 
 };
 
