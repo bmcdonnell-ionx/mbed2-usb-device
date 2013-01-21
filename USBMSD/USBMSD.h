@@ -84,7 +84,7 @@ protected:
     * @param block block number
     * @returns 0 if successful
     */
-    virtual int disk_read(char * data, int block) = 0;
+    virtual int disk_read(uint8_t * data, uint64_t block) = 0;
 
     /*
     * write a block on a storage chip
@@ -93,7 +93,7 @@ protected:
     * @param block block number
     * @returns 0 if successful
     */
-    virtual int disk_write(const char * data, int block) = 0;
+    virtual int disk_write(const uint8_t * data, uint64_t block) = 0;
 
     /*
     * Disk initilization
@@ -105,14 +105,14 @@ protected:
     *
     * @returns number of blocks
     */
-    virtual int disk_sectors() = 0;
+    virtual uint64_t disk_sectors() = 0;
 
     /*
     * Return memory size
     *
     * @returns memory size
     */
-    virtual int disk_size() = 0;
+    virtual uint64_t disk_size() = 0;
 
 
     /*
@@ -216,8 +216,8 @@ private:
     uint8_t * page;
 
     int BlockSize;
-    int MemorySize;
-    int BlockCount;
+    uint64_t MemorySize;
+    uint64_t BlockCount;
 
     void CBWDecode(uint8_t * buf, uint16_t size);
     void sendCSW (void);
