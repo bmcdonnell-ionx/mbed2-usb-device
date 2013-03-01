@@ -250,6 +250,7 @@ bool USBDevice::controlIn(void)
         }
 
         EP0read();
+        EP0readStage();
 
         /* Completed */
         return true;

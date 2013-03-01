@@ -56,8 +56,7 @@ bool USBCDC::USBCallback_request(void) {
                 terminal_connected = true;
                 break;
             case CDC_SET_CONTROL_LINE_STATE:
-                if (terminal_connected)
-                    terminal_connected = false;
+                terminal_connected = false;
                 success = true;
                 break;
             default:
@@ -147,12 +146,13 @@ uint8_t * USBCDC::stringIproductDesc() {
 }
 
 
-#define CONFIG1_DESC_SIZE (9+9+5+5+4+5+7+9+7+7)
+#define CONFIG1_DESC_SIZE (9+8+9+5+5+4+5+7+9+7+7)
 
 uint8_t * USBCDC::configurationDesc() {
     static uint8_t configDescriptor[] = {
-        9,                      // bLength;
-        2,                      // bDescriptorType;
+        // configuration descriptor
+        9,                      // bLength
+        2,                      // bDescriptorType
         LSB(CONFIG1_DESC_SIZE), // wTotalLength
         MSB(CONFIG1_DESC_SIZE),
         2,                      // bNumInterfaces
@@ -160,6 +160,16 @@ uint8_t * USBCDC::configurationDesc() {
         0,                      // iConfiguration
         0x80,                   // bmAttributes
         50,                     // bMaxPower
+        
+        // IAD to associate the two CDC interfaces
+        0x08,                   // bLength
+        0x0b,                   // bDescriptorType
+        0x00,                   // bFirstInterface
+        0x02,                   // bInterfaceCount
+        0x02,                   // bFunctionClass
+        0x02,                   // bFunctionSubClass
+        0,                      // bFunctionProtocol
+        0,                      // iFunction
 
         // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
         9,                      // bLength
@@ -211,33 +221,33 @@ uint8_t * USBCDC::configurationDesc() {
 
 
         // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-        9,          // bLength
-        4,          // bDescriptorType
-        1,          // bInterfaceNumber
-        0,          // bAlternateSetting
-        2,          // bNumEndpoints
-        0x0A,       // bInterfaceClass
-        0x00,       // bInterfaceSubClass
-        0x00,       // bInterfaceProtocol
-        0,          // iInterface
+        9,                          // bLength
+        4,                          // bDescriptorType
+        1,                          // bInterfaceNumber
+        0,                          // bAlternateSetting
+        2,                          // bNumEndpoints
+        0x0A,                       // bInterfaceClass
+        0x00,                       // bInterfaceSubClass
+        0x00,                       // bInterfaceProtocol
+        0,                          // iInterface
 
         // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-        7,                      // bLength
-        5,                      // bDescriptorType
-        PHY_TO_DESC(EPBULK_IN), // bEndpointAddress
-        0x02,                   // bmAttributes (0x02=bulk)
-        LSB(MAX_PACKET_SIZE_EPBULK),    // wMaxPacketSize (LSB)
-        MSB(MAX_PACKET_SIZE_EPBULK),    // wMaxPacketSize (MSB)
-        0,                      // bInterval
+        ENDPOINT_DESCRIPTOR_LENGTH, // bLength
+        ENDPOINT_DESCRIPTOR,        // bDescriptorType
+        PHY_TO_DESC(EPBULK_IN),     // bEndpointAddress
+        E_BULK,                     // bmAttributes (0x02=bulk)
+        LSB(MAX_PACKET_SIZE_EPBULK),// wMaxPacketSize (LSB)
+        MSB(MAX_PACKET_SIZE_EPBULK),// wMaxPacketSize (MSB)
+        0,                          // bInterval
 
         // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-        7,                      // bLength
-        5,                      // bDescriptorType
-        PHY_TO_DESC(EPBULK_OUT),// bEndpointAddress
-        0x02,                   // bmAttributes (0x02=bulk)
-        LSB(MAX_PACKET_SIZE_EPBULK),    // wMaxPacketSize (LSB)
-        MSB(MAX_PACKET_SIZE_EPBULK),     // wMaxPacketSize (MSB)
-        0                       // bInterval
+        ENDPOINT_DESCRIPTOR_LENGTH, // bLength
+        ENDPOINT_DESCRIPTOR,        // bDescriptorType
+        PHY_TO_DESC(EPBULK_OUT),    // bEndpointAddress
+        E_BULK,                     // bmAttributes (0x02=bulk)
+        LSB(MAX_PACKET_SIZE_EPBULK),// wMaxPacketSize (LSB)
+        MSB(MAX_PACKET_SIZE_EPBULK),// wMaxPacketSize (MSB)
+        0                           // bInterval
     };
     return configDescriptor;
 }
