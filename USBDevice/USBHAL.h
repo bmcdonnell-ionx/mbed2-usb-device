@@ -37,6 +37,7 @@ public:
     /* Endpoint 0 */
     void EP0setup(uint8_t *buffer);
     void EP0read(void);
+    void EP0readStage(void);
     uint32_t EP0getReadResult(uint8_t *buffer);
     void EP0write(uint8_t *buffer, uint32_t size);
     void EP0getWriteResult(void);
@@ -61,17 +62,52 @@ protected:
     virtual void connectStateChanged(unsigned int connected){};
     virtual void suspendStateChanged(unsigned int suspended){};
     virtual void SOF(int frameNumber){};
+            
     virtual bool EP1_OUT_callback(){return false;};
     virtual bool EP1_IN_callback(){return false;};
     virtual bool EP2_OUT_callback(){return false;};
     virtual bool EP2_IN_callback(){return false;};
     virtual bool EP3_OUT_callback(){return false;};
     virtual bool EP3_IN_callback(){return false;};
+    virtual bool EP4_OUT_callback(){return false;};
+    virtual bool EP4_IN_callback(){return false;};
+    
+#if !defined(TARGET_LPC11U24)
+    virtual bool EP5_OUT_callback(){return false;};
+    virtual bool EP5_IN_callback(){return false;};
+    virtual bool EP6_OUT_callback(){return false;};
+    virtual bool EP6_IN_callback(){return false;};
+    virtual bool EP7_OUT_callback(){return false;};
+    virtual bool EP7_IN_callback(){return false;};
+    virtual bool EP8_OUT_callback(){return false;};
+    virtual bool EP8_IN_callback(){return false;};
+    virtual bool EP9_OUT_callback(){return false;};
+    virtual bool EP9_IN_callback(){return false;};
+    virtual bool EP10_OUT_callback(){return false;};
+    virtual bool EP10_IN_callback(){return false;};
+    virtual bool EP11_OUT_callback(){return false;};
+    virtual bool EP11_IN_callback(){return false;};
+    virtual bool EP12_OUT_callback(){return false;};
+    virtual bool EP12_IN_callback(){return false;};
+    virtual bool EP13_OUT_callback(){return false;};
+    virtual bool EP13_IN_callback(){return false;};
+    virtual bool EP14_OUT_callback(){return false;};
+    virtual bool EP14_IN_callback(){return false;};
+    virtual bool EP15_OUT_callback(){return false;};
+    virtual bool EP15_IN_callback(){return false;};
+#endif
     
 private:
     void usbisr(void);
     static void _usbisr(void);
     static USBHAL * instance;
-};
+
+#if defined(TARGET_LPC11U24)
+        bool (USBHAL::*epCallback[10 - 2])(void);
+#else
+        bool (USBHAL::*epCallback[32 - 2])(void);
 #endif
 
+        
+};
+#endif

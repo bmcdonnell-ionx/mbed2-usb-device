@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifdef TARGET_LPC1768
+#if defined(TARGET_LPC1768) || defined(TARGET_LPC2368)
 
 #include "USBHAL.h"
 
@@ -116,8 +116,8 @@
 
 USBHAL * USBHAL::instance;
 
-volatile int epComplete;
-uint32_t endpointStallState;
+static volatile int epComplete;
+static uint32_t endpointStallState;
 
 static void SIECommand(uint32_t command) {
     // The command phase of a SIE transaction
@@ -209,18 +209,14 @@ static void SIEunconfigureDevice(void) {
 
 static void SIEconnect(void) {
     // Connect USB device
-    uint8_t status;
-
-    status = SIEgetDeviceStatus();
+    uint8_t status = SIEgetDeviceStatus();
     SIEsetDeviceStatus(status | SIE_DS_CON);
 }
 
 
 static void SIEdisconnect(void) {
     // Disconnect USB device
-    uint8_t status;
-
-    status = SIEgetDeviceStatus();
+    uint8_t status = SIEgetDeviceStatus();
     SIEsetDeviceStatus(status & ~SIE_DS_CON);
 }
 
@@ -231,9 +227,6 @@ static uint8_t selectEndpointClearInterrupt(uint8_t endpoint) {
     while (!(LPC_USB->USBDevIntSt & CDFULL));
     return (uint8_t)LPC_USB->USBCmdData;
 }
-
-
-
 
 
 static void enableEndpointEvent(uint8_t endpoint) {
@@ -248,8 +241,6 @@ static void disableEndpointEvent(uint8_t endpoint) {
 }
 
 static volatile uint32_t __attribute__((used)) dummyRead;
-
-
 uint32_t USBHAL::endpointReadcore(uint8_t endpoint, uint8_t *buffer) {
     // Read from an OUT endpoint
     uint32_t size;
@@ -333,15 +324,41 @@ static void endpointWritecore(uint8_t endpoint, uint8_t *buffer, uint32_t size) 
     SIEvalidateBuffer();
 }
 
-
-
-
-
-
-
 USBHAL::USBHAL(void) {
     // Disable IRQ
     NVIC_DisableIRQ(USB_IRQn);
+    
+    // fill in callback array
+    epCallback[0] = &USBHAL::EP1_OUT_callback;
+    epCallback[1] = &USBHAL::EP1_IN_callback;
+    epCallback[2] = &USBHAL::EP2_OUT_callback;
+    epCallback[3] = &USBHAL::EP2_IN_callback;
+    epCallback[4] = &USBHAL::EP3_OUT_callback;
+    epCallback[5] = &USBHAL::EP3_IN_callback;
+    epCallback[6] = &USBHAL::EP4_OUT_callback;
+    epCallback[7] = &USBHAL::EP4_IN_callback;
+    epCallback[8] = &USBHAL::EP5_OUT_callback;
+    epCallback[9] = &USBHAL::EP5_IN_callback;
+    epCallback[10] = &USBHAL::EP6_OUT_callback;
+    epCallback[11] = &USBHAL::EP6_IN_callback;
+    epCallback[12] = &USBHAL::EP7_OUT_callback;
+    epCallback[13] = &USBHAL::EP7_IN_callback;
+    epCallback[14] = &USBHAL::EP8_OUT_callback;
+    epCallback[15] = &USBHAL::EP8_IN_callback;
+    epCallback[16] = &USBHAL::EP9_OUT_callback;
+    epCallback[17] = &USBHAL::EP9_IN_callback;
+    epCallback[18] = &USBHAL::EP10_OUT_callback;
+    epCallback[19] = &USBHAL::EP10_IN_callback;
+    epCallback[20] = &USBHAL::EP11_OUT_callback;
+    epCallback[21] = &USBHAL::EP11_IN_callback;
+    epCallback[22] = &USBHAL::EP12_OUT_callback;
+    epCallback[23] = &USBHAL::EP12_IN_callback;
+    epCallback[24] = &USBHAL::EP13_OUT_callback;
+    epCallback[25] = &USBHAL::EP13_IN_callback;
+    epCallback[26] = &USBHAL::EP14_OUT_callback;
+    epCallback[27] = &USBHAL::EP14_IN_callback;
+    epCallback[28] = &USBHAL::EP15_OUT_callback;
+    epCallback[29] = &USBHAL::EP15_IN_callback;
 
     // Enable power to USB device controller
     LPC_SC->PCONP |= PCUSB;
@@ -381,7 +398,6 @@ USBHAL::USBHAL(void) {
 USBHAL::~USBHAL(void) {
     // Ensure device disconnected
     SIEdisconnect();
-
     // Disable USB interrupts
     NVIC_DisableIRQ(USB_IRQn);
 }
@@ -415,6 +431,10 @@ void USBHAL::EP0setup(uint8_t *buffer) {
 }
 
 void USBHAL::EP0read(void) {
+    // Not required
+}
+
+void USBHAL::EP0readStage(void) {
     // Not required
 }
 
@@ -527,10 +547,6 @@ void USBHAL::remoteWakeup(void) {
     SIEsetDeviceStatus(status & ~SIE_DS_SUS);
 }
 
-
-
-
-
 void USBHAL::_usbisr(void) {
     instance->usbisr();
 }
@@ -590,54 +606,16 @@ void USBHAL::usbisr(void) {
             LPC_USB->USBDevIntClr = EP_SLOW;
             EP0in();
         }
-
-        // TODO: This should cover all endpoints, not just EP1,2,3:
-        if (LPC_USB->USBEpIntSt & EP(EP1IN)) {
-            selectEndpointClearInterrupt(EP1IN);
-            epComplete |= EP(EP1IN);
-            LPC_USB->USBDevIntClr = EP_SLOW;
-            if (EP1_IN_callback())
-                epComplete &= ~EP(EP1IN);
-        }
-
-        if (LPC_USB->USBEpIntSt & EP(EP1OUT)) {
-            selectEndpointClearInterrupt(EP1OUT);
-            epComplete |= EP(EP1OUT);
-            LPC_USB->USBDevIntClr = EP_SLOW;
-            if (EP1_OUT_callback())
-                epComplete &= ~EP(EP1OUT);
-        }
-
-        if (LPC_USB->USBEpIntSt & EP(EP2IN)) {
-            selectEndpointClearInterrupt(EP2IN);
-            epComplete |= EP(EP2IN);
-            LPC_USB->USBDevIntClr = EP_SLOW;
-            if (EP2_IN_callback())
-                epComplete &= ~EP(EP2IN);
-        }
-
-        if (LPC_USB->USBEpIntSt & EP(EP2OUT)) {
-            selectEndpointClearInterrupt(EP2OUT);
-            epComplete |= EP(EP2OUT);
-            LPC_USB->USBDevIntClr = EP_SLOW;
-            if (EP2_OUT_callback())
-                epComplete &= ~EP(EP2OUT);
-        }
-
-        if (LPC_USB->USBEpIntSt & EP(EP3IN)) {
-            selectEndpointClearInterrupt(EP3IN);
-            epComplete |= EP(EP3IN);
-            LPC_USB->USBDevIntClr = EP_SLOW;
-            if (EP3_IN_callback())
-                epComplete &= ~EP(EP3IN);
-        }
-
-        if (LPC_USB->USBEpIntSt & EP(EP3OUT)) {
-            selectEndpointClearInterrupt(EP3OUT);
-            epComplete |= EP(EP3OUT);
-            LPC_USB->USBDevIntClr = EP_SLOW;
-            if (EP3_OUT_callback())
-                epComplete &= ~EP(EP3OUT);
+        
+        for (uint8_t num = 2; num < 16*2; num++) {
+            if (LPC_USB->USBEpIntSt & EP(num)) {
+                selectEndpointClearInterrupt(num);
+                epComplete |= EP(num);
+                LPC_USB->USBDevIntClr = EP_SLOW;
+                if ((instance->*(epCallback[num - 2]))()) {
+                    epComplete &= ~EP(num);
+                }
+            }
         }
     }
 }
