@@ -95,6 +95,9 @@ USBHAL::USBHAL(void)
 #elif defined(TARGET_MAX32620)
     // Enable the USB clock
     MXC_CLKMAN->clk_ctrl |= MXC_F_CLKMAN_CLK_CTRL_USB_CLOCK_ENABLE;
+#elif defined(TARGET_MAX32625) || defined(TARGET_MAX32630)
+    MXC_PWRMAN->pwr_rst_ctrl |= MXC_F_PWRMAN_PWR_RST_CTRL_USB_POWERED;
+    MXC_CLKMAN->clk_ctrl |= MXC_F_CLKMAN_CLK_CTRL_USB_CLOCK_ENABLE;
 #endif
 
     // reset the device
