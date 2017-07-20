@@ -22,7 +22,7 @@
 #include "USBCDC.h"
 #include "Stream.h"
 #include "CircBuffer.h"
-
+#include "Callback.h"
 
 /**
 * USBSerial example
@@ -82,6 +82,13 @@ public:
     * @returns the number of bytes available
     */
     uint8_t available();
+
+     /**
+    * Check if the terminal is connected.
+    *
+    * @returns connection status
+    */
+    bool connected();
 
     /** Determine if there is a character available to read
      *
@@ -153,7 +160,7 @@ protected:
     }
 
 private:
-    FunctionPointer rx;
+    Callback<void()> rx;
     CircBuffer<uint8_t,128> buf;
     void (*settingsChangedCallback)(int baud, int bits, int parity, int stop);
 };

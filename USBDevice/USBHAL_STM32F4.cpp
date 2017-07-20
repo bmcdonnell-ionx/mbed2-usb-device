@@ -16,7 +16,7 @@
 * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#if defined(TARGET_STM32F4)
+#if defined(TARGET_STM32F4) && !defined(USB_STM_HAL)
 
 #include "USBHAL.h"
 #include "USBRegs_STM32.h"
@@ -48,7 +48,7 @@ USBHAL::USBHAL(void) {
     // Enable power and clocking
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
 
-#if defined(TARGET_STM32F407VG) || defined(TARGET_STM32F401RE) || defined(TARGET_STM32F411RE) || defined(TARGET_STM32F429ZI)
+#if defined(TARGET_STM32F407VG) || defined(TARGET_STM32F401RE) || defined(TARGET_STM32F411RE) || defined(TARGET_STM32F412ZG) || defined(TARGET_STM32F429ZI)
     pin_function(PA_8, STM_PIN_DATA(STM_MODE_AF_PP, GPIO_NOPULL, GPIO_AF10_OTG_FS));
     pin_function(PA_9, STM_PIN_DATA(STM_MODE_INPUT, GPIO_PULLDOWN, GPIO_AF10_OTG_FS));
     pin_function(PA_10, STM_PIN_DATA(STM_MODE_AF_OD, GPIO_PULLUP, GPIO_AF10_OTG_FS));
@@ -367,7 +367,7 @@ void USBHAL::usbisr(void) {
             else {
                 epComplete |= (1 << endpoint);
                 if ((instance->*(epCallback[endpoint - 2]))()) {
-                    epComplete &= (1 << endpoint);
+                    epComplete &= ~(1 << endpoint);
                 }
             }
         }
